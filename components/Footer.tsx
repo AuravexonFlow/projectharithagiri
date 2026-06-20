@@ -1,12 +1,23 @@
+'use client';
+
 import Image from 'next/image';
+import { useSiteSettings } from '@/lib/useSupabase';
 
 export default function Footer() {
+  const [settings] = useSiteSettings();
+  const siteName = settings.site_name || 'හරිතගිරි විහාරය';
+  const address = settings.address || 'හරිත ගම';
+  const phone = settings.phone || '';
+  const email = settings.email || '';
+  const facebook = settings.facebook || '#';
+  const youtube = settings.youtube || '#';
+
   return (
     <footer className="bg-temple-green text-white mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">හරිතගිරි විහාරය</h3>
+            <h3 className="text-xl font-bold mb-4">{siteName}</h3>
             <p className="text-sm opacity-90">
               ගුණ ධර්ම මතින් ගොඩ නැගෙන යහපත් පරපුරක් තනන අපේ නවෝදයේ පින්බිම
             </p>
@@ -14,19 +25,18 @@ export default function Footer() {
           
           <div>
             <h3 className="text-lg font-semibold mb-4">සම්බන්ධ වන්න</h3>
-            <p className="text-sm opacity-90">
-              📍 හරිත ගම<br/>
-              📞 +94 77 430 3310<br/>
-              ✉️ harithagamapansala@gmail.com
-            </p>
+            <div className="text-sm opacity-90 space-y-1">
+              {address && <p>📍 {address}</p>}
+              {phone && <p>📞 {phone}</p>}
+              {email && <p>✉️ {email}</p>}
+            </div>
           </div>
           
           <div>
             <h3 className="text-lg font-semibold mb-4">අනුගමනය කරන්න</h3>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-temple-gold transition-colors">Facebook</a>
-              <a href="#" className="hover:text-temple-gold transition-colors">YouTube</a>
-              <a href="#" className="hover:text-temple-gold transition-colors">Instagram</a>
+              {facebook && facebook !== '#' && <a href={facebook} target="_blank" rel="noopener noreferrer" className="hover:text-temple-gold transition-colors">Facebook</a>}
+              {youtube && youtube !== '#' && <a href={youtube} target="_blank" rel="noopener noreferrer" className="hover:text-temple-gold transition-colors">YouTube</a>}
             </div>
           </div>
         </div>

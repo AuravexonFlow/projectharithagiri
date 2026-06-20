@@ -2,10 +2,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSiteSettings } from '@/lib/useSupabase';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [settings] = useSiteSettings();
+  const siteName = settings.site_name || 'හරිතගිරි විහාරය';
+  const siteNameEn = settings.site_name_en || 'Harithagiri Viharaya';
 
   const navLinks = [
     { href: '/', label: 'මුල් පිටුව' },
@@ -33,8 +37,8 @@ export default function Navbar() {
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-temple-green group-hover:text-temple-gold transition-colors">හරිතගිරි විහාරය</h1>
-              <p className="text-xs text-gray-600">Harithagiri Viharaya</p>
+              <h1 className="text-xl font-bold text-temple-green group-hover:text-temple-gold transition-colors">{siteName}</h1>
+              <p className="text-xs text-gray-600">{siteNameEn}</p>
             </div>
           </Link>
 
