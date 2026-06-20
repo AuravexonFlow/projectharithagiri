@@ -1,0 +1,590 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700;800;900&display=swap');
+
+body {
+  font-family: 'Noto Sans Sinhala', sans-serif;
+  background: linear-gradient(135deg, #FFF8E7 0%, #FFFDF5 50%, #FFF8E7 100%);
+  overflow-x: hidden;
+}
+
+/* Golden gradient for special elements */
+.stupa-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F4E5A1 50%, #D4AF37 100%);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Enhanced card hover with 3D effect */
+.card-hover {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-hover:hover {
+  transform: translateY(-16px) scale(1.03) rotateX(2deg);
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.2),
+    0 0 40px rgba(212, 175, 55, 0.3);
+}
+
+/* Glassmorphism effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Shimmer effect */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow effect */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5),
+              0 0 40px rgba(212, 175, 55, 0.3),
+              0 0 60px rgba(212, 175, 55, 0.1);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(45, 90, 61, 0.5),
+              0 0 40px rgba(45, 90, 61, 0.3),
+              0 0 60px rgba(45, 90, 61, 0.1);
+}
+
+/* Video container */
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Image zoom on hover */
+.image-zoom {
+  overflow: hidden;
+}
+
+.image-zoom img {
+  transition: transform 0.5s ease;
+}
+
+.image-zoom:hover img {
+  transform: scale(1.1);
+}
+
+/* Text gradient */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4AF37 0%, #F4E5A1 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, #2D5A3D 0%, #4A7C5C 50%, #2D5A3D 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.8s ease-out forwards;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.8s ease-out forwards;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.6),
+                0 0 60px rgba(212, 175, 55, 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 20s linear infinite;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF8E7;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #D4AF37, #2D5A3D);
+  border-radius: 10px;
+  border: 2px solid #FFF8E7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2D5A3D, #D4AF37);
+}
+
+/* Falling Bodhi Leaves Animation */
+.falling-leaves {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.leaf {
+  position: absolute;
+  top: -100px;
+  width: 40px;
+  height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='leafGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%237CFC00;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%2332CD32;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23228B22;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 8 C25 25, 8 45, 12 60 C16 75, 30 85, 50 92 C70 85, 84 75, 88 60 C92 45, 75 25, 50 8 Z' fill='url(%23leafGrad)' stroke='%23006400' stroke-width='0.5'/%3E%3Cpath d='M50 15 L50 88 M50 25 Q35 35 25 45 M50 25 Q65 35 75 45 M50 35 Q38 45 28 55 M50 35 Q62 45 72 55 M50 45 Q40 55 32 65 M50 45 Q60 55 68 65 M50 55 Q42 65 35 75 M50 55 Q58 65 65 75 M50 65 Q44 75 38 82 M50 65 Q56 75 62 82' stroke='%23006400' stroke-width='1' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+  animation: fall linear infinite;
+}
+
+.leaf:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+.leaf:nth-child(2) { left: 20%; animation-duration: 15s; animation-delay: 2s; }
+.leaf:nth-child(3) { left: 30%; animation-duration: 10s; animation-delay: 4s; }
+.leaf:nth-child(4) { left: 40%; animation-duration: 14s; animation-delay: 1s; }
+.leaf:nth-child(5) { left: 50%; animation-duration: 11s; animation-delay: 3s; }
+.leaf:nth-child(6) { left: 60%; animation-duration: 13s; animation-delay: 5s; }
+.leaf:nth-child(7) { left: 70%; animation-duration: 16s; animation-delay: 2.5s; }
+.leaf:nth-child(8) { left: 80%; animation-duration: 9s; animation-delay: 1.5s; }
+.leaf:nth-child(9) { left: 90%; animation-duration: 12s; animation-delay: 4.5s; }
+.leaf:nth-child(10) { left: 15%; animation-duration: 14s; animation-delay: 6s; }
+.leaf:nth-child(11) { left: 35%; animation-duration: 10s; animation-delay: 7s; }
+.leaf:nth-child(12) { left: 55%; animation-duration: 15s; animation-delay: 3.5s; }
+.leaf:nth-child(13) { left: 75%; animation-duration: 11s; animation-delay: 5.5s; }
+.leaf:nth-child(14) { left: 85%; animation-duration: 13s; animation-delay: 0.5s; }
+.leaf:nth-child(15) { left: 5%; animation-duration: 16s; animation-delay: 8s; }
+
+@keyframes fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg) translateX(0px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg) translateX(100px);
+    opacity: 0;
+  }
+}
+
+/* Leaf sway animation */
+.leaf {
+  animation: fall linear infinite, sway ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% {
+    margin-left: 0;
+  }
+  50% {
+    margin-left: 50px;
+  }
+}
+
+/* Sparkle/Glow Effect for Sacred Elements */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #FFD700 0%, transparent 70%);
+  border-radius: 50%;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Gentle Pulse Glow for Sacred Objects */
+@keyframes sacred-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3),
+                0 0 40px rgba(212, 175, 55, 0.2),
+                0 0 60px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6),
+                0 0 60px rgba(212, 175, 55, 0.4),
+                0 0 90px rgba(212, 175, 55, 0.2);
+  }
+}
+
+.sacred-glow {
+  animation: sacred-glow 3s ease-in-out infinite;
+}
+
+/* Floating Particles (Dust/Light) */
+@keyframes float-particle {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.particle {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  animation: float-particle linear infinite;
+}
+
+/* Gradient Border Animation */
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-border-animated {
+  background: linear-gradient(90deg, #D4AF37, #2D5A3D, #D4AF37, #F4E5A1, #D4AF37);
+  background-size: 300% 100%;
+  animation: gradient-border 4s ease infinite;
+}
+
+/* Text Shimmer Effect */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #D4AF37 0%,
+    #FFF8E7 25%,
+    #D4AF37 50%,
+    #FFF8E7 75%,
+    #D4AF37 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 3s linear infinite;
+}
+
+/* Ripple Effect on Hover */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple-effect:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Lotus Bloom Animation */
+@keyframes lotus-bloom {
+  0% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0.7;
+  }
+}
+
+.lotus-bloom {
+  animation: lotus-bloom 4s ease-in-out infinite;
+}
+
+/* Divine Light Rays */
+@keyframes light-rays {
+  0% {
+    opacity: 0.3;
+    transform: rotate(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: rotate(180deg);
+  }
+  100% {
+    opacity: 0.3;
+    transform: rotate(360deg);
+  }
+}
+
+.light-rays {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(212, 175, 55, 0.1) 10deg,
+    transparent 20deg,
+    rgba(212, 175, 55, 0.1) 30deg,
+    transparent 40deg,
+    rgba(212, 175, 55, 0.1) 50deg,
+    transparent 60deg,
+    rgba(212, 175, 55, 0.1) 70deg,
+    transparent 80deg,
+    rgba(212, 175, 55, 0.1) 90deg,
+    transparent 360deg
+  );
+  animation: light-rays 20s linear infinite;
+  pointer-events: none;
+}
+
+/* Enchanted Hover Lift */
+.enchanted-hover {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.enchanted-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 30px rgba(212, 175, 55, 0.4);
+}
+
+/* Decorative Corner Borders */
+.corner-decoration {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.6;
+}
+
+.corner-decoration.top-left {
+  top: 0;
+  left: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M10 10 Q50 5, 80 20 Q110 35, 140 30 Q170 25, 190 10 L190 20 Q170 35, 140 40 Q110 45, 80 30 Q50 15, 10 20 Z' fill='%23D4AF37' opacity='0.3'/%3E%3Cpath d='M20 30 C30 25, 40 20, 50 25 C60 30, 55 40, 50 50 C45 60, 35 55, 30 50 C25 45, 20 40, 20 30' fill='%23D4AF37' stroke='%23B8860B' stroke-width='1'/%3E%3Cpath d='M30 40 C35 38, 40 35, 45 38 C50 41, 48 46, 45 50 C42 54, 37 52, 35 48 C33 44, 30 42, 30 40' fill='%23F4E5A1' stroke='%23D4AF37' stroke-width='0.5'/%3E%3Cpath d='M15 50 Q25 45, 35 50 Q45 55, 55 50 Q65 45, 75 50 Q85 55, 95 50' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3Cpath d='M20 60 Q30 55, 40 60 Q50 65, 60 60 Q70 55, 80 60 Q90 65, 100 60' fill='none' stroke='%23D4AF37' stroke-width='1.5'/%3E%3Cpath d='M25 70 Q35 65, 45 70 Q55 75, 65 70 Q75 65, 85 70' fill='none' stroke='%23B8860B' stroke-width='1'/%3E%3Cpath d='M10 15 C15 20, 20 25, 25 30 C30 35, 35 40, 40 45 C45 50, 50 55, 55 60 C60 65, 65 70, 70 75 C75 80, 80 85, 85 90 C90 95, 95 100, 100 105' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M15 20 C20 25, 25 30, 30 35 C35 40, 40 45, 45 50 C50 55, 55 60, 60 65 C65 70, 70 75, 75 80 C80 85, 85 90, 90 95' fill='none' stroke='%23B8860B' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23D4AF37'/%3E%3Ccircle cx='70' cy='70' r='2' fill='%23F4E5A1'/%3E%3Ccircle cx='90' cy='90' r='2.5' fill='%23D4AF37'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.corner-decoration.top-right {
+  top: 0;
+  right: 0;
+  transform: scaleX(-1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M10 10 Q50 5, 80 20 Q110 35, 140 30 Q170 25, 190 10 L190 20 Q170 35, 140 40 Q110 45, 80 30 Q50 15, 10 20 Z' fill='%23D4AF37' opacity='0.3'/%3E%3Cpath d='M20 30 C30 25, 40 20, 50 25 C60 30, 55 40, 50 50 C45 60, 35 55, 30 50 C25 45, 20 40, 20 30' fill='%23D4AF37' stroke='%23B8860B' stroke-width='1'/%3E%3Cpath d='M30 40 C35 38, 40 35, 45 38 C50 41, 48 46, 45 50 C42 54, 37 52, 35 48 C33 44, 30 42, 30 40' fill='%23F4E5A1' stroke='%23D4AF37' stroke-width='0.5'/%3E%3Cpath d='M15 50 Q25 45, 35 50 Q45 55, 55 50 Q65 45, 75 50 Q85 55, 95 50' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3Cpath d='M20 60 Q30 55, 40 60 Q50 65, 60 60 Q70 55, 80 60 Q90 65, 100 60' fill='none' stroke='%23D4AF37' stroke-width='1.5'/%3E%3Cpath d='M25 70 Q35 65, 45 70 Q55 75, 65 70 Q75 65, 85 70' fill='none' stroke='%23B8860B' stroke-width='1'/%3E%3Cpath d='M10 15 C15 20, 20 25, 25 30 C30 35, 35 40, 40 45 C45 50, 50 55, 55 60 C60 65, 65 70, 70 75 C75 80, 80 85, 85 90 C90 95, 95 100, 100 105' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M15 20 C20 25, 25 30, 30 35 C35 40, 40 45, 45 50 C50 55, 55 60, 60 65 C65 70, 70 75, 75 80 C80 85, 85 90, 90 95' fill='none' stroke='%23B8860B' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23D4AF37'/%3E%3Ccircle cx='70' cy='70' r='2' fill='%23F4E5A1'/%3E%3Ccircle cx='90' cy='90' r='2.5' fill='%23D4AF37'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
