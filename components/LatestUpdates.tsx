@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 
-const updates = [
+const fallbackUpdates = [
   {
     image: '/images/IMG_20260611_093600.jpg',
     badge: '🏗️ දැනට සිදුවෙමින්',
@@ -47,8 +48,34 @@ const updates = [
 ];
 
 export default function LatestUpdates() {
+  const [updates, setUpdates] = useState(fallbackUpdates);
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Fetch news from Supabase
+  useEffect(() => {
+    async function fetchNews() {
+      const { data, error } = await supabase
+        .from('news_updates')
+        .select('*')
+        .eq('is_published', true)
+        .order('published_at', { ascending: false })
+        .limit(5);
+      if (!error && data && data.length > 0) {
+        const colors = ['from-amber-700/80 to-orange-500/40', 'from-teal-700/80 to-emerald-500/40', 'from-violet-700/80 to-purple-500/40', 'from-emerald-700/80 to-green-500/40', 'from-rose-700/80 to-pink-500/40'];
+        const mapped = data.map((n: Record<string, unknown>, i: number) => ({
+          image: (n.image_url as string) || '/images/IMG_20260611_093600.jpg',
+          badge: '📰 නවතම',
+          title: (n.title_si as string) || (n.title as string),
+          description: (n.content_si as string) || (n.content as string) || '',
+          status: 'නව පුවතක්',
+          color: colors[i % colors.length],
+        }));
+        setUpdates(mapped);
+      }
+    }
+    fetchNews();
+  }, []);
 
   const goToSlide = useCallback((index: number) => {
     if (index === current || isTransitioning) return;

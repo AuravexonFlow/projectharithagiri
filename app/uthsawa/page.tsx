@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 
 interface Event {
-  id: number;
+  id: string | number;
   name: string;
   date: string;
   description: string;
@@ -13,65 +14,91 @@ interface Event {
   photos: string[];
 }
 
+const fallbackEvents: Event[] = [
+  {
+    id: 1,
+    name: 'වෙසක් උත්සවය',
+    date: 'මැයි 2026',
+    description: 'බුදුරජාණන් වහන්සේගේ උපත, බුද්ධත්වය සහ පිරිනිවන් පෑම සිහිපත් කරමින් පැවැත්වෙන වාර්ෂික උත්සවය.',
+    image: '/images/vesak.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/vesak-1.jpg', '/images/vesak-2.jpg']
+  },
+  {
+    id: 2,
+    name: 'පොසොන් උත්සවය',
+    date: 'ජූනි 2026',
+    description: 'ශ්‍රී ලංකාවට බුදු දහම පැමිණීම සිහිපත් කරමින් පැවැත්වෙන උත්සවය.',
+    image: '/images/poson.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/poson-1.jpg', '/images/poson-2.jpg']
+  },
+  {
+    id: 3,
+    name: 'ඇසළ පෙරහර',
+    date: 'ජූලි 2026',
+    description: 'දළදා මාලිගාවේ පෙරහර අනුව පැවැත්වෙන සම්ප්‍රදායික පෙරහර.',
+    image: '/images/esala.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/esala-1.jpg', '/images/esala-2.jpg']
+  },
+  {
+    id: 4,
+    name: 'කඨින පිංකම',
+    date: 'ඔක්තෝබර් 2026',
+    description: 'වස් කාලය අවසානයේ පැවැත්වෙන කඨින පිංකම.',
+    image: '/images/kathina.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/kathina-1.jpg', '/images/kathina-2.jpg']
+  },
+  {
+    id: 5,
+    name: 'අලුත් අවුරුදු උත්සවය',
+    date: 'අප්‍රේල් 2026',
+    description: 'සිංහල හා දෙමළ අලුත් අවුරුද්ද සැමරීම.',
+    image: '/images/newyear.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/newyear-1.jpg', '/images/newyear-2.jpg']
+  },
+  {
+    id: 6,
+    name: 'ධර්ම දේශනා',
+    date: 'සෑම පෝය දිනකම',
+    description: 'පෝය දිනවල පැවැත්වෙන විශේෂ ධර්ම දේශනා.',
+    image: '/images/dhamma-talk.jpg',
+    youtubeId: 'dQw4w9WgXcQ',
+    photos: ['/images/dhamma-1.jpg', '/images/dhamma-2.jpg']
+  }
+];
+
 export default function UthsawaPage() {
+  const [events, setEvents] = useState<Event[]>(fallbackEvents);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const events: Event[] = [
-    {
-      id: 1,
-      name: 'වෙසක් උත්සවය',
-      date: 'මැයි 2026',
-      description: 'බුදුරජාණන් වහන්සේගේ උපත, බුද්ධත්වය සහ පිරිනිවන් පෑම සිහිපත් කරමින් පැවැත්වෙන වාර්ෂික උත්සවය.',
-      image: '/images/vesak.jpg',
-      youtubeId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-      photos: ['/images/vesak-1.jpg', '/images/vesak-2.jpg']
-    },
-    {
-      id: 2,
-      name: 'පොසොන් උත්සවය',
-      date: 'ජූනි 2026',
-      description: 'ශ්‍රී ලංකාවට බුදු දහම පැමිණීම සිහිපත් කරමින් පැවැත්වෙන උත්සවය.',
-      image: '/images/poson.jpg',
-      youtubeId: 'dQw4w9WgXcQ',
-      photos: ['/images/poson-1.jpg', '/images/poson-2.jpg']
-    },
-    {
-      id: 3,
-      name: 'ඇසළ පෙරහර',
-      date: 'ජූලි 2026',
-      description: 'දළදා මාලිගාවේ පෙරහර අනුව පැවැත්වෙන සම්ප්‍රදායික පෙරහර.',
-      image: '/images/esala.jpg',
-      youtubeId: 'dQw4w9WgXcQ',
-      photos: ['/images/esala-1.jpg', '/images/esala-2.jpg']
-    },
-    {
-      id: 4,
-      name: 'කඨින පිංකම',
-      date: 'ඔක්තෝබර් 2026',
-      description: 'වස් කාලය අවසානයේ පැවැත්වෙන කඨින පිංකම.',
-      image: '/images/kathina.jpg',
-      youtubeId: 'dQw4w9WgXcQ',
-      photos: ['/images/kathina-1.jpg', '/images/kathina-2.jpg']
-    },
-    {
-      id: 5,
-      name: 'අලුත් අවුරුදු උත්සවය',
-      date: 'අප්‍රේල් 2026',
-      description: 'සිංහල හා දෙමළ අලුත් අවුරුද්ද සැමරීම.',
-      image: '/images/newyear.jpg',
-      youtubeId: 'dQw4w9WgXcQ',
-      photos: ['/images/newyear-1.jpg', '/images/newyear-2.jpg']
-    },
-    {
-      id: 6,
-      name: 'ධර්ම දේශනා',
-      date: 'සෑම පෝය දිනකම',
-      description: 'පෝය දිනවල පැවැත්වෙන විශේෂ ර්ම දේශනා.',
-      image: '/images/dhamma-talk.jpg',
-      youtubeId: 'dQw4w9WgXcQ',
-      photos: ['/images/dhamma-1.jpg', '/images/dhamma-2.jpg']
+  // Fetch from Supabase on mount
+  useEffect(() => {
+    async function fetchEvents() {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (!error && data && data.length > 0) {
+        const mapped: Event[] = data.map((e: Record<string, unknown>) => ({
+          id: (e.id as string) || '',
+          name: (e.name_si as string) || (e.name as string),
+          date: (e.date as string) || '',
+          description: (e.description_si as string) || (e.description as string) || '',
+          image: (e.cover_image as string) || '/images/vesak.jpg',
+          youtubeId: e.youtube_id as string | undefined,
+          photos: [],
+        }));
+        setEvents(mapped);
+      }
     }
-  ];
+    fetchEvents();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">

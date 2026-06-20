@@ -1,17 +1,48 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+
+interface DonorRecord {
+  name: string;
+  contribution: string;
+  year: string;
+}
+
+const fallbackDonors: DonorRecord[] = [
+  { name: 'දායක නාමය 1', contribution: 'රු. 50,000', year: '2024' },
+  { name: 'දායක නාමය 2', contribution: 'රු. 30,000', year: '2024' },
+  { name: 'දායක නාමය 3', contribution: 'රු. 25,000', year: '2024' },
+  { name: 'දායක නාමය 4', contribution: 'රු. 20,000', year: '2024' },
+  { name: 'දායක නාමය 5', contribution: 'රු. 15,000', year: '2024' },
+  { name: 'දායක නාමය 6', contribution: 'රු. 10,000', year: '2024' },
+];
 
 export default function DayakaSabhawaPage() {
-  const donors = [
-    { name: 'දායක නාමය 1', contribution: 'රු. 50,000', year: '2024' },
-    { name: 'දායක නාමය 2', contribution: 'රු. 30,000', year: '2024' },
-    { name: 'දායක නාමය 3', contribution: 'රු. 25,000', year: '2024' },
-    { name: 'දායක නාමය 4', contribution: 'රු. 20,000', year: '2024' },
-    { name: 'දායක නාමය 5', contribution: 'රු. 15,000', year: '2024' },
-    { name: 'දායක නාමය 6', contribution: 'රු. 10,000', year: '2024' },
-  ];
+  const [donors, setDonors] = useState<DonorRecord[]>(fallbackDonors);
+
+  // Fetch donors from Supabase
+  useEffect(() => {
+    async function fetchDonors() {
+      const { data, error } = await supabase
+        .from('donors')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (!error && data && data.length > 0) {
+        const mapped: DonorRecord[] = data.map((d: Record<string, unknown>) => ({
+          name: (d.name_si as string) || (d.name as string),
+          contribution: d.amount ? `රු. ${Number(d.amount).toLocaleString()}` : (d.contribution as string) || '',
+          year: (d.year as string) || '',
+        }));
+        setDonors(mapped);
+      }
+    }
+    fetchDonors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-temple-cream/30 to-white">
