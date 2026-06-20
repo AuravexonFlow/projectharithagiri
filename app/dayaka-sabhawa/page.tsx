@@ -30,7 +30,7 @@ export default function DayakaSabhawaPage() {
         .from('donors')
         .select('*')
         .eq('is_active', true)
-        .order('display_order');
+        .order('created_at', { ascending: false });
       
       if (!error && data && data.length > 0) {
         const mapped: DonorRecord[] = data.map((d: Record<string, unknown>) => ({

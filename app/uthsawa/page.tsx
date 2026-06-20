@@ -82,7 +82,7 @@ export default function UthsawaPage() {
         .from('events')
         .select('*')
         .eq('is_active', true)
-        .order('display_order');
+        .order('created_at', { ascending: false });
       
       if (!error && data && data.length > 0) {
         const mapped: Event[] = data.map((e: Record<string, unknown>) => ({

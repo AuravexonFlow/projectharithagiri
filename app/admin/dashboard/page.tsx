@@ -35,8 +35,12 @@ export default function AdminDashboard() {
     const tables = ['donors', 'events', 'gallery_images', 'news_updates', 'committee_members', 'temple_places'];
     const result: Record<string, number> = {};
     for (const table of tables) {
-      const { count } = await supabase.from(table).select('*', { count: 'exact', head: true });
-      result[table] = count || 0;
+      try {
+        const res = await adminApi('count', table);
+        result[table] = res.count || 0;
+      } catch {
+        result[table] = 0;
+      }
     }
     setCounts(result);
   }, []);

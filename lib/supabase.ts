@@ -31,7 +31,7 @@ export async function getDonors(): Promise<Donor[]> {
     .from('donors')
     .select('*')
     .eq('is_active', true)
-    .order('display_order')
+    .order('created_at', { ascending: false })
   if (error) { console.error('Error fetching donors:', error); return []; }
   return data || [];
 }
