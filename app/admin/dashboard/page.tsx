@@ -4,6 +4,18 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
+// Admin API helper — routes writes through /api/admin (service role) to bypass RLS
+async function adminApi(action: string, table: string, opts?: { data?: unknown; id?: string; filters?: Record<string, unknown> }) {
+  const res = await fetch('/api/admin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, table, ...opts }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'API error');
+  return json;
+}
+
 type Tab = 'overview' | 'donors' | 'events' | 'gallery' | 'news' | 'committee' | 'settings';
 
 export default function AdminDashboard() {
@@ -158,24 +170,24 @@ function DonorsTab() {
   const addDonor = async () => {
     if (!form.name) return;
     setLoading(true);
-    const { error } = await supabase.from('donors').insert({
-      name: form.name, name_si: form.name_si || null,
-      contribution: form.contribution || null,
-      amount: form.amount ? parseFloat(form.amount) : null,
-      year: form.year || null, phone: form.phone || null, address: form.address || null,
-    });
-    if (error) alert('දෝෂයකි: ' + error.message);
-    else {
+    try {
+      await adminApi('insert', 'donors', {
+        data: {
+          name: form.name, name_si: form.name_si || null,
+          contribution: form.contribution || null,
+          amount: form.amount ? parseFloat(form.amount) : null,
+          year: form.year || null, phone: form.phone || null, address: form.address || null,
+        }
+      });
       setForm({ name: '', name_si: '', contribution: '', amount: '', year: '', phone: '', address: '' });
       fetchDonors();
-    }
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
   const deleteDonor = async (id: string) => {
     if (!confirm('ඔබට මෙය මැකීමට අවශ්‍යද?')) return;
-    await supabase.from('donors').delete().eq('id', id);
-    fetchDonors();
+    try { await adminApi('delete', 'donors', { id }); fetchDonors(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   return (
@@ -231,7 +243,7 @@ function EventsTab() {
   const [loading, setLoading] = useState(false);
 
   const fetchEvents = useCallback(async () => {
-    const { data } = await supabase.from('events').select('*').order('display_order');
+    const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false });
     setEvents(data || []);
   }, []);
 
@@ -240,23 +252,23 @@ function EventsTab() {
   const addEvent = async () => {
     if (!form.name) return;
     setLoading(true);
-    const { error } = await supabase.from('events').insert({
-      name: form.name, name_si: form.name_si || null,
-      date: form.date || null, description: form.description || null,
-      description_si: form.description_si || null, youtube_id: form.youtube_id || null,
-    });
-    if (error) alert('දෝෂයකි: ' + error.message);
-    else {
+    try {
+      await adminApi('insert', 'events', {
+        data: {
+          name: form.name, name_si: form.name_si || null,
+          date: form.date || null, description: form.description || null,
+          description_si: form.description_si || null, youtube_id: form.youtube_id || null,
+        }
+      });
       setForm({ name: '', name_si: '', date: '', description: '', description_si: '', youtube_id: '' });
       fetchEvents();
-    }
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
   const deleteEvent = async (id: string) => {
     if (!confirm('මැකීමට අවශ්‍යද?')) return;
-    await supabase.from('events').delete().eq('id', id);
-    fetchEvents();
+    try { await adminApi('delete', 'events', { id }); fetchEvents(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   return (
@@ -308,7 +320,7 @@ function GalleryTab() {
   const [loading, setLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
-    const { data } = await supabase.from('gallery_categories').select('*').order('display_order');
+    const { data } = await supabase.from('gallery_categories').select('*').order('created_at', { ascending: false });
     setCategories(data || []);
   }, []);
 
@@ -325,18 +337,18 @@ function GalleryTab() {
   const addImage = async () => {
     if (!selectedCat || !imageUrl) return;
     setLoading(true);
-    const { error } = await supabase.from('gallery_images').insert({
-      category_id: selectedCat, image_url: imageUrl, title: imageTitle || null,
-    });
-    if (error) alert('දෝෂයකි: ' + error.message);
-    else { setImageUrl(''); setImageTitle(''); fetchImages(); }
+    try {
+      await adminApi('insert', 'gallery_images', {
+        data: { category_id: selectedCat, image_url: imageUrl, title: imageTitle || null }
+      });
+      setImageUrl(''); setImageTitle(''); fetchImages();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
   const deleteImage = async (id: string) => {
     if (!confirm('මැකීමට අවශ්‍යද?')) return;
-    await supabase.from('gallery_images').delete().eq('id', id);
-    fetchImages();
+    try { await adminApi('delete', 'gallery_images', { id }); fetchImages(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   return (
@@ -402,28 +414,27 @@ function NewsTab() {
   const addNews = async () => {
     if (!form.title) return;
     setLoading(true);
-    const { error } = await supabase.from('news_updates').insert({
-      title: form.title, title_si: form.title_si || null,
-      content: form.content || null, content_si: form.content_si || null,
-      image_url: form.image_url || null, is_published: true,
-    });
-    if (error) alert('දෝෂයකි: ' + error.message);
-    else {
+    try {
+      await adminApi('insert', 'news_updates', {
+        data: {
+          title: form.title, title_si: form.title_si || null,
+          content: form.content || null, content_si: form.content_si || null,
+          image_url: form.image_url || null, is_published: true,
+        }
+      });
       setForm({ title: '', title_si: '', content: '', content_si: '', image_url: '' });
       fetchNews();
-    }
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
   const togglePublish = async (id: string, current: boolean) => {
-    await supabase.from('news_updates').update({ is_published: !current }).eq('id', id);
-    fetchNews();
+    try { await adminApi('update', 'news_updates', { id, data: { is_published: !current } }); fetchNews(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   const deleteNews = async (id: string) => {
     if (!confirm('මැකීමට අවශ්‍යද?')) return;
-    await supabase.from('news_updates').delete().eq('id', id);
-    fetchNews();
+    try { await adminApi('delete', 'news_updates', { id }); fetchNews(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   return (
@@ -476,7 +487,7 @@ function CommitteeTab() {
   const [loading, setLoading] = useState(false);
 
   const fetchMembers = useCallback(async () => {
-    const { data } = await supabase.from('committee_members').select('*').order('display_order');
+    const { data } = await supabase.from('committee_members').select('*').order('created_at', { ascending: false });
     setMembers(data || []);
   }, []);
 
@@ -485,23 +496,23 @@ function CommitteeTab() {
   const addMember = async () => {
     if (!form.name || !form.role) return;
     setLoading(true);
-    const { error } = await supabase.from('committee_members').insert({
-      name: form.name, name_si: form.name_si || null,
-      role: form.role, role_si: form.role_si || null,
-      phone: form.phone || null, email: form.email || null,
-    });
-    if (error) alert('දෝෂයකි: ' + error.message);
-    else {
+    try {
+      await adminApi('insert', 'committee_members', {
+        data: {
+          name: form.name, name_si: form.name_si || null,
+          role: form.role, role_si: form.role_si || null,
+          phone: form.phone || null, email: form.email || null,
+        }
+      });
       setForm({ name: '', name_si: '', role: '', role_si: '', phone: '', email: '' });
       fetchMembers();
-    }
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
   const deleteMember = async (id: string) => {
     if (!confirm('මැකීමට අවශ්‍යද?')) return;
-    await supabase.from('committee_members').delete().eq('id', id);
-    fetchMembers();
+    try { await adminApi('delete', 'committee_members', { id }); fetchMembers(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
   return (
@@ -566,8 +577,10 @@ function SettingsTab() {
 
   const updateSetting = async (key: string, value: string) => {
     setLoading(true);
-    await supabase.from('site_settings').upsert({ key, value }, { onConflict: 'key' });
-    fetchSettings();
+    try {
+      await adminApi('upsert', 'site_settings', { data: { key, value }, filters: { onConflict: 'key' } });
+      fetchSettings();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
 
