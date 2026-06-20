@@ -175,3 +175,42 @@ export async function getNewsUpdates(limit = 10): Promise<NewsUpdate[]> {
   if (error) { console.error('Error fetching news updates:', error); return []; }
   return data || [];
 }
+
+// ============================================
+// Storage Helpers
+// ============================================
+
+export async function uploadImage(
+  file: File,
+  folder: string = 'general'
+): Promise<string | null> {
+  const ext = file.name.split('.').pop();
+  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+  
+  const { error } = await supabase.storage
+    .from('temple-images')
+    .upload(fileName, file, { contentType: file.type });
+    
+  if (error) { console.error('Error uploading image:', error); return null; }
+  
+  const { data: urlData } = supabase.storage
+    .from('temple-images')
+    .getPublicUrl(fileName);
+    
+  return urlData.publicUrl;
+}
+
+export async function deleteImage(path: string): Promise<boolean> {
+  const { error } = await supabase.storage
+    .from('temple-images')
+    .remove([path]);
+  if (error) { console.error('Error deleting image:', error); return false; }
+  return true;
+}
+
+export function getImageUrl(path: string): string {
+  const { data } = supabase.storage
+    .from('temple-images')
+    .getPublicUrl(path);
+  return data.publicUrl;
+}
