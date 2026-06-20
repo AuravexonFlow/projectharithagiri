@@ -543,6 +543,16 @@ function CommitteeTab() {
 /* ============================================
    Settings Tab
    ============================================ */
+const settingLabels: Record<string, { label: string; icon: string; placeholder: string }> = {
+  site_name: { label: 'විහාරස්ථානයේ නම (සිංහල)', icon: '🏛️', placeholder: 'හරිතගිරි විහාරය' },
+  site_name_en: { label: 'විහාරස්ථානයේ නම (English)', icon: '🔤', placeholder: 'Harithagiri Viharaya' },
+  address: { label: 'ලිපිනය', icon: '📍', placeholder: 'හරිත ගම, ශ්‍රී ලංකාව' },
+  phone: { label: 'දුරකථන අංකය', icon: '📞', placeholder: '+94 77 430 3310' },
+  email: { label: 'ඊමේල් ලිපිනය', icon: '✉️', placeholder: 'harithagamapansala@gmail.com' },
+  facebook: { label: 'Facebook පිටුව', icon: '📘', placeholder: 'https://facebook.com/...' },
+  youtube: { label: 'YouTube නාලිකාව', icon: '📺', placeholder: 'https://youtube.com/...' },
+};
+
 function SettingsTab() {
   const [settings, setSettings] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
@@ -563,33 +573,48 @@ function SettingsTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">⚙️ සැකසුම්</h2>
+      <h2 className="text-2xl font-bold text-gray-800">⚙️ අඩවි සැකසුම්</h2>
       <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="font-bold mb-4">අඩවි සැකසුම්</h3>
-        <div className="space-y-4">
-          {settings.map(s => (
-            <SettingRow key={s.key as string} setting={s} onSave={updateSetting} loading={loading} />
-          ))}
+        <p className="text-sm text-gray-500 mb-6">ඔබේ විහාරස්ථානයේ මූලික තොරතුරු මෙහි සකස් කරන්න.</p>
+        <div className="space-y-5">
+          {settings.map(s => {
+            const key = s.key as string;
+            const meta = settingLabels[key] || { label: key, icon: '⚙️', placeholder: '' };
+            return (
+              <div key={key} className="border border-gray-100 rounded-xl p-4 hover:border-temple-green/30 transition-colors">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">{meta.icon}</span>
+                  <div>
+                    <p className="font-semibold text-gray-800">{meta.label}</p>
+                    <p className="text-xs text-gray-400 font-mono">{key}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <input
+                    value={(s.value as string) || ''}
+                    onChange={e => {
+                      const updated = settings.map(item =>
+                        item.key === key ? { ...item, value: e.target.value } : item
+                      );
+                      setSettings(updated);
+                    }}
+                    placeholder={meta.placeholder}
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-temple-green/30 focus:border-temple-green outline-none transition-all"
+                  />
+                  <button
+                    onClick={() => updateSetting(key, (s.value as string) || '')}
+                    disabled={loading}
+                    className="bg-temple-green text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-temple-green-dark disabled:opacity-50 transition-colors"
+                  >
+                    💾 සුරකින්න
+                  </button>
+                </div>
+              </div>
+            );
+          })}
           {settings.length === 0 && <p className="text-center text-gray-400 py-8">සැකසුම් නැත</p>}
         </div>
       </div>
-    </div>
-  );
-}
-
-function SettingRow({ setting, onSave, loading }: { setting: Record<string, unknown>; onSave: (key: string, value: string) => void; loading: boolean }) {
-  const [val, setVal] = useState((setting.value as string) || '');
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-48 shrink-0">
-        <p className="font-medium text-sm">{setting.key as string}</p>
-        <p className="text-xs text-gray-400">{setting.description as string}</p>
-      </div>
-      <input value={val} onChange={e => setVal(e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm" />
-      <button onClick={() => onSave(setting.key as string, val)} disabled={loading} className="bg-temple-green text-white px-3 py-2 rounded-lg text-sm hover:bg-temple-green-dark disabled:opacity-50">
-        💾
-      </button>
     </div>
   );
 }
