@@ -6,11 +6,20 @@ import { supabase } from '@/lib/supabase';
 
 // Admin API helper — routes writes through /api/admin (service role) to bypass RLS
 async function adminApi(action: string, table: string, opts?: { data?: unknown; id?: string; filters?: Record<string, unknown> }) {
+  const token = sessionStorage.getItem('adminToken');
   const res = await fetch('/api/admin', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ action, table, ...opts }),
   });
+  if (res.status === 401) {
+    sessionStorage.removeItem('adminToken');
+    window.location.href = '/admin/login';
+    throw new Error('Session expired');
+  }
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'API error');
   return json;
@@ -25,8 +34,8 @@ export default function AdminDashboard() {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuthenticated');
-    if (!auth) { router.push('/admin/login'); return; }
+    const token = sessionStorage.getItem('adminToken');
+    if (!token) { router.push('/admin/login'); return; }
     setIsAuthenticated(true);
     fetchCounts();
   }, [router]);
@@ -46,7 +55,7 @@ export default function AdminDashboard() {
   }, []);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('adminToken');
     router.push('/admin/login');
   };
 
@@ -487,11 +496,38 @@ function NewsTab() {
    ============================================ */
 function CommitteeTab() {
   const [members, setMembers] = useState<Record<string, unknown>[]>([]);
-  const [form, setForm] = useState({ name: '', name_si: '', role: '', role_si: '', phone: '', email: '' });
+  const [form, setForm] = useState({
+    name: '', name_si: '', role: '', role_si: '', category: 'committee',
+    description_si: '', photo: '', initials: '', phone: '', email: ''
+  });
   const [loading, setLoading] = useState(false);
+  const [filterCategory, setFilterCategory] = useState('all');
+
+  const categoryLabels: Record<string, { label: string; icon: string }> = {
+    president: { label: 'සභාපති', icon: '🌟' },
+    officer: { label: 'නිලධාරින්', icon: '👔' },
+    committee: { label: 'කාරක සභිකයින්', icon: '👥' },
+    representative: { label: 'ප්‍රදේශ නියෝජිත්‍යින්', icon: '📍' },
+  };
+
+  const colorOptions = [
+    'from-temple-green to-temple-green-dark',
+    'from-temple-gold to-yellow-600',
+    'from-temple-green to-emerald-700',
+    'from-purple-500 to-indigo-600',
+    'from-rose-500 to-pink-600',
+    'from-amber-500 to-orange-600',
+    'from-teal-500 to-cyan-600',
+    'from-violet-500 to-purple-600',
+    'from-emerald-500 to-green-600',
+    'from-sky-500 to-blue-600',
+    'from-fuchsia-500 to-purple-600',
+    'from-lime-500 to-green-600',
+    'from-red-500 to-rose-600',
+  ];
 
   const fetchMembers = useCallback(async () => {
-    const { data } = await supabase.from('committee_members').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('committee_members').select('*').order('display_order', { ascending: true });
     setMembers(data || []);
   }, []);
 
@@ -501,14 +537,21 @@ function CommitteeTab() {
     if (!form.name || !form.role) return;
     setLoading(true);
     try {
+      const maxOrder = members.length > 0 ? Math.max(...members.map(m => (m.display_order as number) || 0)) : 0;
       await adminApi('insert', 'committee_members', {
         data: {
           name: form.name, name_si: form.name_si || null,
           role: form.role, role_si: form.role_si || null,
+          category: form.category,
+          description_si: form.description_si || null,
+          photo: form.photo || null,
+          initials: form.initials || form.name.split(' ').map((w: string) => w[0]).join('').substring(0, 3).toUpperCase(),
+          color: colorOptions[members.length % colorOptions.length],
           phone: form.phone || null, email: form.email || null,
+          display_order: maxOrder + 1,
         }
       });
-      setForm({ name: '', name_si: '', role: '', role_si: '', phone: '', email: '' });
+      setForm({ name: '', name_si: '', role: '', role_si: '', category: form.category, description_si: '', photo: '', initials: '', phone: '', email: '' });
       fetchMembers();
     } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
@@ -519,36 +562,87 @@ function CommitteeTab() {
     try { await adminApi('delete', 'committee_members', { id }); fetchMembers(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
   };
 
+  const toggleActive = async (id: string, current: boolean) => {
+    try { await adminApi('update', 'committee_members', { id, data: { is_active: !current } }); fetchMembers(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  const filtered = filterCategory === 'all' ? members : members.filter(m => m.category === filterCategory);
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">👥 කමිටු සාමාජිකයින්</h2>
+
+      {/* Add Form */}
       <div className="bg-white rounded-xl shadow-md p-6">
         <h3 className="font-bold mb-4">නව සාමාජියෙකු එක් කරන්න</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="px-3 py-2 border rounded-lg text-sm">
+            <option value="president">🌟 සභාපති</option>
+            <option value="officer">👔 නිලධාරින්</option>
+            <option value="committee">👥 කාරක සභිකයින්</option>
+            <option value="representative">📍 ප්‍රදේශ නියෝජිත්‍යින්</option>
+          </select>
           <input placeholder="නම (English)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="නම (සිංහල)" value={form.name_si} onChange={e => setForm({...form, name_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="තනතුර (English)" value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="තනතුර (සිංහල)" value={form.role_si} onChange={e => setForm({...form, role_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
-          <input placeholder="දුරකථන" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="කෙටි නම (initials, e.g. S.A)" value={form.initials} onChange={e => setForm({...form, initials: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="පින්තූර URL (විකල්ප)" value={form.photo} onChange={e => setForm({...form, photo: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="විස්තරය (සිංහල)" value={form.description_si} onChange={e => setForm({...form, description_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <button onClick={addMember} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium">
             {loading ? 'එක් වෙමින්...' : '➕ එක් කරන්න'}
           </button>
         </div>
       </div>
+
+      {/* Filter */}
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => setFilterCategory('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterCategory === 'all' ? 'bg-temple-green text-white' : 'bg-white text-gray-600 border'}`}>
+          සියල්ල ({members.length})
+        </button>
+        {Object.entries(categoryLabels).map(([key, { label, icon }]) => {
+          const count = members.filter(m => m.category === key).length;
+          return (
+            <button key={key} onClick={() => setFilterCategory(key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterCategory === key ? 'bg-temple-green text-white' : 'bg-white text-gray-600 border'}`}>
+              {icon} {label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Members List */}
       <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="font-bold mb-4">සාමාජිකයින් ({members.length})</h3>
+        <h3 className="font-bold mb-4">සාමාජිකයින් ({filtered.length})</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {members.map(m => (
-            <div key={m.id as string} className="border rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <h4 className="font-bold">{(m.name_si as string) || (m.name as string)}</h4>
-                <p className="text-sm text-temple-gold">{(m.role_si as string) || (m.role as string)}</p>
-                {(m.phone as string) && <p className="text-xs text-gray-500">📞 {m.phone as string}</p>}
+          {filtered.map(m => {
+            const cat = categoryLabels[m.category as string] || { label: m.category as string, icon: '👤' };
+            return (
+              <div key={m.id as string} className={`border rounded-lg p-4 flex justify-between items-start ${!(m.is_active as boolean) ? 'opacity-50 bg-gray-50' : ''}`}>
+                <div className="flex items-start gap-3">
+                  {m.photo ? (
+                    <img src={m.photo as string} alt={m.name as string} className="w-12 h-12 rounded-full object-cover" />
+                  ) : (
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${(m.color as string) || 'from-gray-400 to-gray-500'} flex items-center justify-center text-white text-sm font-bold`}>
+                      {(m.initials as string) || '?'}
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-bold">{(m.name_si as string) || (m.name as string)}</h4>
+                    <p className="text-sm text-temple-gold">{cat.icon} {(m.role_si as string) || (m.role as string)}</p>
+                    {(m.description_si as string) && <p className="text-xs text-gray-500 mt-1">{m.description_si as string}</p>}
+                    {(m.phone as string) && <p className="text-xs text-gray-500">📞 {m.phone as string}</p>}
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => toggleActive(m.id as string, m.is_active as boolean)} className={`text-xs px-2 py-1 rounded ${m.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {m.is_active ? 'සක්‍රීය' : 'අක්‍රීය'}
+                  </button>
+                  <button onClick={() => deleteMember(m.id as string)} className="text-red-500 hover:text-red-700 text-xs">🗑️</button>
+                </div>
               </div>
-              <button onClick={() => deleteMember(m.id as string)} className="text-red-500 hover:text-red-700 text-xs">🗑️</button>
-            </div>
-          ))}
-          {members.length === 0 && <p className="col-span-full text-center text-gray-400 py-8">සාමාජිකයින් නැත</p>}
+            );
+          })}
+          {filtered.length === 0 && <p className="col-span-full text-center text-gray-400 py-8">සාමාජිකයින් නැත</p>}
         </div>
       </div>
     </div>

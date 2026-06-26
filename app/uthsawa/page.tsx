@@ -22,7 +22,7 @@ const fallbackEvents: Event[] = [
     description: 'බුදුරජාණන් වහන්සේගේ උපත, බුද්ධත්වය සහ පිරිනිවන් පෑම සිහිපත් කරමින් පැවැත්වෙන වාර්ෂික උත්සවය.',
     image: '/images/vesak.jpg',
     youtubeId: 'K_7zXrwX5PQ',
-    photos: ['/images/vesak-1.jpg', '/images/vesak-2.jpg']
+    photos: []
   },
   {
     id: 2,
@@ -30,7 +30,7 @@ const fallbackEvents: Event[] = [
     date: 'ජූනි 2026',
     description: 'ශ්‍රී ලංකාවට බුදු දහම පැමිණීම සිහිපත් කරමින් පැවැත්වෙන උත්සවය.',
     image: '/images/poson.jpg',
-    photos: ['/images/poson-1.jpg', '/images/poson-2.jpg']
+    photos: []
   },
   {
     id: 3,
@@ -38,7 +38,7 @@ const fallbackEvents: Event[] = [
     date: 'ජූලි 2026',
     description: 'දළදා මාලිගාවේ පෙරහර අනුව පැවැත්වෙන සම්ප්‍රදායික පෙරහර.',
     image: '/images/esala.jpg',
-    photos: ['/images/esala-1.jpg', '/images/esala-2.jpg']
+    photos: []
   },
   {
     id: 4,
@@ -46,7 +46,7 @@ const fallbackEvents: Event[] = [
     date: 'ඔක්තෝබර් 2026',
     description: 'වස් කාලය අවසානයේ පැවැත්වෙන කඨින පිංකම.',
     image: '/images/kathina.jpg',
-    photos: ['/images/kathina-1.jpg', '/images/kathina-2.jpg']
+    photos: []
   },
   {
     id: 5,
@@ -54,7 +54,7 @@ const fallbackEvents: Event[] = [
     date: 'අප්‍රේල් 2026',
     description: 'සිංහල හා දෙමළ අලුත් අවුරුද්ද සැමරීම.',
     image: '/images/newyear.jpg',
-    photos: ['/images/newyear-1.jpg', '/images/newyear-2.jpg']
+    photos: []
   },
   {
     id: 6,
@@ -62,7 +62,7 @@ const fallbackEvents: Event[] = [
     date: 'සෑම පෝය දිනකම',
     description: 'පෝය දිනවල පැවැත්වෙන විශේෂ ධර්ම දේශනා.',
     image: '/images/dhamma-talk.jpg',
-    photos: ['/images/dhamma-1.jpg', '/images/dhamma-2.jpg']
+    photos: []
   }
 ];
 

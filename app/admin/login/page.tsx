@@ -7,20 +7,29 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Secret password for admin access (in production, use environment variables)
-  const ADMIN_PASSWORD = 'harithagiri2026';
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password === ADMIN_PASSWORD) {
-      // Set session storage to indicate logged in
-      sessionStorage.setItem('adminAuthenticated', 'true');
-      router.push('/admin/dashboard');
-    } else {
-      setError('වැරදි මුරපදය');
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || 'වැරදි මුරපදය');
+      } else {
+        sessionStorage.setItem('adminToken', json.token);
+        router.push('/admin/dashboard');
+      }
+    } catch {
+      setError('සම්බන්ධතා දෝෂයකි');
     }
+    setLoading(false);
   };
 
   return (
@@ -58,9 +67,10 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-temple-green text-white py-3 rounded-lg hover:bg-temple-green-dark transition-colors font-semibold"
+            disabled={loading}
+            className="w-full bg-temple-green text-white py-3 rounded-lg hover:bg-temple-green-dark transition-colors font-semibold disabled:opacity-50"
           >
-            ප්රවේශ වන්න / Login
+            {loading ? 'ප්‍රවේශ වෙමින්...' : 'ප්රවේශ වන්න / Login'}
           </button>
         </form>
 

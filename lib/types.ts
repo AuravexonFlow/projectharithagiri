@@ -8,6 +8,11 @@ export interface CommitteeMember {
   phone: string | null
   email: string | null
   image_url: string | null
+  category: string | null
+  description_si: string | null
+  photo: string | null
+  initials: string | null
+  color: string | null
   display_order: number
   is_active: boolean
   created_at: string

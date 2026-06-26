@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,10 +14,32 @@ const ALLOWED_TABLES = [
   'temple_officials', 'event_photos', 'site_settings'
 ];
 
+const ADMIN_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ADMIN_SECRET || 'harithagiri-admin-2026';
+
+function verifyToken(token: string): boolean {
+  try {
+    const [timestamp, signature] = token.split('.');
+    if (!timestamp || !signature) return false;
+    if (Date.now() - parseInt(timestamp) > 24 * 60 * 60 * 1000) return false;
+    const expected = createHmac('sha256', ADMIN_SECRET).update(timestamp).digest('hex');
+    const sigBuf = Buffer.from(signature, 'hex');
+    const expBuf = Buffer.from(expected, 'hex');
+    if (sigBuf.length !== expBuf.length) return false;
+    return timingSafeEqual(sigBuf, expBuf);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, table, data, id, filters } = body;
+
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !verifyToken(authHeader.replace('Bearer ', ''))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     if (!table || !ALLOWED_TABLES.includes(table)) {
       return NextResponse.json({ error: 'Invalid table' }, { status: 400 });
@@ -38,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'count': {
-        const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
+        const { count, error } = await supabase.from(table).select('*', { count: 'exact' });
         if (error) return NextResponse.json({ error: error.message }, { status: 400 });
         return NextResponse.json({ count: count || 0 });
       }

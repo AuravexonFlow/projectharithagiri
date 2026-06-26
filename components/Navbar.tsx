@@ -59,7 +59,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-md text-temple-green hover:bg-temple-cream"
+            className="lg:hidden p-2 rounded-md text-temple-green hover:bg-temple-cream"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
@@ -73,7 +73,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden pb-4">
+          <div className="lg:hidden pb-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}

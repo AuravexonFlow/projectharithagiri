@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSiteSettings } from '@/lib/useSupabase';
 
 const donationPurposes = [
   { id: 'general', label: 'සාමාන්‍ය දානය', icon: '🪷', desc: 'විහාරයේ සාමාන්‍ය කටයුතු සඳහා' },
@@ -12,6 +13,10 @@ const donationPurposes = [
 ];
 
 export default function DayakaPage() {
+  const [settings] = useSiteSettings();
+  const phone = settings.phone || '+94 77 430 3310';
+  const email = settings.email || 'harithagamapansala@gmail.com';
+  const address = settings.address || 'හරිත ගම';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-temple-cream/30 to-white">
@@ -74,27 +79,27 @@ export default function DayakaPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {/* Phone */}
                 <a
-                  href="tel:+94774303310"
+                  href={`tel:${phone.replace(/\s/g, '')}`}
                   className="group bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 hover:border-temple-gold/50 transition-all duration-300 hover:scale-[1.03]"
                 >
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-temple-gold/20 flex items-center justify-center group-hover:bg-temple-gold/30 transition-colors">
                     <span className="text-3xl">📞</span>
                   </div>
                   <h3 className="text-white font-bold text-lg mb-1">දුරකථන</h3>
-                  <p className="text-temple-gold font-semibold text-lg">+94 77 430 3310</p>
+                  <p className="text-temple-gold font-semibold text-lg">{phone}</p>
                   <p className="text-white/50 text-sm mt-2">උදෑසන 8:00 - සවස 6:00</p>
                 </a>
 
                 {/* Email */}
                 <a
-                  href="mailto:harithagamapansala@gmail.com"
+                  href={`mailto:${email}`}
                   className="group bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 hover:border-temple-gold/50 transition-all duration-300 hover:scale-[1.03]"
                 >
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-temple-gold/20 flex items-center justify-center group-hover:bg-temple-gold/30 transition-colors">
                     <span className="text-3xl">✉️</span>
                   </div>
                   <h3 className="text-white font-bold text-lg mb-1">ඊමේල්</h3>
-                  <p className="text-temple-gold font-semibold text-sm break-all">harithagamapansala@gmail.com</p>
+                  <p className="text-temple-gold font-semibold text-sm break-all">{email}</p>
                   <p className="text-white/50 text-sm mt-2">ඕනෑම වේලාවක</p>
                 </a>
 
@@ -108,7 +113,7 @@ export default function DayakaPage() {
                   </div>
                   <h3 className="text-white font-bold text-lg mb-1">පැමිණෙන්න</h3>
                   <p className="text-temple-gold font-semibold">හරිතගිරි විහාරය</p>
-                  <p className="text-white/50 text-sm mt-2">හරිත ගම</p>
+                  <p className="text-white/50 text-sm mt-2">{address}</p>
                 </Link>
               </div>
             </div>

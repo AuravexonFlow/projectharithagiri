@@ -234,7 +234,7 @@ export default function GalleryPage() {
             >
               🌟 සියල්ල / All
             </button>
-            {galleryCategories.map((category) => (
+            {galleryCategories.filter(cat => cat.images.length > 0).map((category) => (
               <button
                 key={category.id}
                 onClick={() => { setSelectedCategory(category.id); setVisibleCount(16); }}
