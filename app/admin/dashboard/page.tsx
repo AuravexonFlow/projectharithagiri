@@ -25,7 +25,7 @@ async function adminApi(action: string, table: string, opts?: { data?: unknown; 
   return json;
 }
 
-type Tab = 'overview' | 'donors' | 'events' | 'gallery' | 'news' | 'committee' | 'settings';
+type Tab = 'overview' | 'donors' | 'events' | 'gallery' | 'news' | 'committee' | 'places' | 'officials' | 'gcategories' | 'settings';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -92,6 +92,9 @@ export default function AdminDashboard() {
             { key: 'gallery', icon: '📸', label: 'ගැලරිය' },
             { key: 'news', icon: '📰', label: 'පුවත්' },
             { key: 'committee', icon: '👥', label: 'කමිටුව' },
+            { key: 'places', icon: '🏛️', label: 'ස්ථාන' },
+            { key: 'officials', icon: '🧘', label: 'භික්ෂූන්' },
+            { key: 'gcategories', icon: '📁', label: 'ගැලරි කාණ්ඩ' },
             { key: 'settings', icon: '⚙️', label: 'සැකසුම්' },
           ] as const).map(item => (
             <button
@@ -117,6 +120,9 @@ export default function AdminDashboard() {
           {activeTab === 'gallery' && <GalleryTab />}
           {activeTab === 'news' && <NewsTab />}
           {activeTab === 'committee' && <CommitteeTab />}
+          {activeTab === 'places' && <TemplePlacesTab />}
+          {activeTab === 'officials' && <TempleOfficialsTab />}
+          {activeTab === 'gcategories' && <GalleryCategoriesTab />}
           {activeTab === 'settings' && <SettingsTab />}
         </main>
       </div>
@@ -252,7 +258,7 @@ function DonorsTab() {
    ============================================ */
 function EventsTab() {
   const [events, setEvents] = useState<Record<string, unknown>[]>([]);
-  const [form, setForm] = useState({ name: '', name_si: '', date: '', description: '', description_si: '', youtube_id: '' });
+  const [form, setForm] = useState({ name: '', name_si: '', date: '', description: '', description_si: '', youtube_id: '', cover_image: '' });
   const [loading, setLoading] = useState(false);
 
   const fetchEvents = useCallback(async () => {
@@ -271,9 +277,10 @@ function EventsTab() {
           name: form.name, name_si: form.name_si || null,
           date: form.date || null, description: form.description || null,
           description_si: form.description_si || null, youtube_id: form.youtube_id || null,
+          cover_image: form.cover_image || null,
         }
       });
-      setForm({ name: '', name_si: '', date: '', description: '', description_si: '', youtube_id: '' });
+      setForm({ name: '', name_si: '', date: '', description: '', description_si: '', youtube_id: '', cover_image: '' });
       fetchEvents();
     } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
@@ -294,6 +301,7 @@ function EventsTab() {
           <input placeholder="නම (සිංහල)" value={form.name_si} onChange={e => setForm({...form, name_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="දිනය" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="YouTube Video ID" value={form.youtube_id} onChange={e => setForm({...form, youtube_id: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="කවර පින්තූර URL" value={form.cover_image} onChange={e => setForm({...form, cover_image: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <textarea placeholder="විස්තරය (English)" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="px-3 py-2 border rounded-lg text-sm md:col-span-2" rows={2} />
           <textarea placeholder="විස්තරය (සිංහල)" value={form.description_si} onChange={e => setForm({...form, description_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm md:col-span-2" rows={2} />
           <button onClick={addEvent} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium md:col-span-2">
@@ -330,6 +338,8 @@ function GalleryTab() {
   const [selectedCat, setSelectedCat] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageTitle, setImageTitle] = useState('');
+  const [imageTitleSi, setImageTitleSi] = useState('');
+  const [imageDesc, setImageDesc] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
@@ -352,9 +362,9 @@ function GalleryTab() {
     setLoading(true);
     try {
       await adminApi('insert', 'gallery_images', {
-        data: { category_id: selectedCat, image_url: imageUrl, title: imageTitle || null }
+        data: { category_id: selectedCat, image_url: imageUrl, title: imageTitle || null, title_si: imageTitleSi || null, description: imageDesc || null }
       });
-      setImageUrl(''); setImageTitle(''); fetchImages();
+      setImageUrl(''); setImageTitle(''); setImageTitleSi(''); setImageDesc(''); fetchImages();
     } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
   };
@@ -375,7 +385,9 @@ function GalleryTab() {
             {categories.map(c => <option key={c.id as string} value={c.id as string}>{(c.icon as string) || ''} {c.name as string}</option>)}
           </select>
           <input placeholder="ඡායාරූප URL" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="px-3 py-2 border rounded-lg text-sm" />
-          <input placeholder="මාතෘකාව (විකල්ප)" value={imageTitle} onChange={e => setImageTitle(e.target.value)} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="මාතෘකාව (English, විකල්ප)" value={imageTitle} onChange={e => setImageTitle(e.target.value)} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="මාතෘකාව (සිංහල, විකල්ප)" value={imageTitleSi} onChange={e => setImageTitleSi(e.target.value)} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="විස්තරය (විකල්ප)" value={imageDesc} onChange={e => setImageDesc(e.target.value)} className="px-3 py-2 border rounded-lg text-sm" />
         </div>
         <button onClick={addImage} disabled={loading || !selectedCat || !imageUrl} className="mt-3 bg-temple-green text-white px-4 py-2 rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm">
           {loading ? 'එක් වෙමින්...' : '➕ එක් කරන්න'}
@@ -414,7 +426,7 @@ function GalleryTab() {
    ============================================ */
 function NewsTab() {
   const [news, setNews] = useState<Record<string, unknown>[]>([]);
-  const [form, setForm] = useState({ title: '', title_si: '', content: '', content_si: '', image_url: '' });
+  const [form, setForm] = useState({ title: '', title_si: '', content: '', content_si: '', image_url: '', link: '' });
   const [loading, setLoading] = useState(false);
 
   const fetchNews = useCallback(async () => {
@@ -432,10 +444,10 @@ function NewsTab() {
         data: {
           title: form.title, title_si: form.title_si || null,
           content: form.content || null, content_si: form.content_si || null,
-          image_url: form.image_url || null, is_published: true,
+          image_url: form.image_url || null, link: form.link || null, is_published: true,
         }
       });
-      setForm({ title: '', title_si: '', content: '', content_si: '', image_url: '' });
+      setForm({ title: '', title_si: '', content: '', content_si: '', image_url: '', link: '' });
       fetchNews();
     } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
     setLoading(false);
@@ -459,6 +471,7 @@ function NewsTab() {
           <input placeholder="මාතෘකාව (English)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="මාතෘකාව (සිංහල)" value={form.title_si} onChange={e => setForm({...form, title_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
           <input placeholder="ඡායාරූප URL" value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} className="px-3 py-2 border rounded-lg text-sm md:col-span-2" />
+          <input placeholder="සබැඳිය (Link, විකල්ප)" value={form.link} onChange={e => setForm({...form, link: e.target.value})} className="px-3 py-2 border rounded-lg text-sm md:col-span-2" />
           <textarea placeholder="අන්තර්ගතය (English)" value={form.content} onChange={e => setForm({...form, content: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" rows={3} />
           <textarea placeholder="අන්තර්ගතය (සිංහල)" value={form.content_si} onChange={e => setForm({...form, content_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" rows={3} />
           <button onClick={addNews} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium md:col-span-2">
@@ -724,6 +737,288 @@ function SettingsTab() {
             );
           })}
           {settings.length === 0 && <p className="text-center text-gray-400 py-8">සැකසුම් නැත</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================
+   Temple Places Tab
+   ============================================ */
+function TemplePlacesTab() {
+  const [places, setPlaces] = useState<Record<string, unknown>[]>([]);
+  const [placeImages, setPlaceImages] = useState<Record<string, unknown>[]>([]);
+  const [form, setForm] = useState({ slug: '', title: '', title_si: '', short_description: '', short_description_si: '', description: '', description_si: '', sub_heading: '', sub_heading_si: '', cover_image: '' });
+  const [imgForm, setImgForm] = useState({ place_id: '', image_url: '', alt_text: '' });
+  const [loading, setLoading] = useState(false);
+
+  const fetchPlaces = useCallback(async () => {
+    const { data } = await supabase.from('temple_places').select('*').order('display_order', { ascending: true });
+    setPlaces(data || []);
+  }, []);
+
+  const fetchPlaceImages = useCallback(async () => {
+    const { data } = await supabase.from('place_images').select('*').order('display_order', { ascending: true });
+    setPlaceImages(data || []);
+  }, []);
+
+  useEffect(() => { fetchPlaces(); fetchPlaceImages(); }, [fetchPlaces, fetchPlaceImages]);
+
+  const addPlace = async () => {
+    if (!form.slug || !form.title) return;
+    setLoading(true);
+    try {
+      const maxOrder = places.length > 0 ? Math.max(...places.map(p => (p.display_order as number) || 0)) : 0;
+      await adminApi('insert', 'temple_places', {
+        data: { ...form, short_description: form.short_description || null, short_description_si: form.short_description_si || null, description: form.description || null, description_si: form.description_si || null, sub_heading: form.sub_heading || null, sub_heading_si: form.sub_heading_si || null, cover_image: form.cover_image || null, display_order: maxOrder + 1 }
+      });
+      setForm({ slug: '', title: '', title_si: '', short_description: '', short_description_si: '', description: '', description_si: '', sub_heading: '', sub_heading_si: '', cover_image: '' });
+      fetchPlaces();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+    setLoading(false);
+  };
+
+  const deletePlace = async (id: string) => {
+    if (!confirm('මැකීමට අවශ්‍යද? මෙම ස්ථානයේ සියලු පින්තූර ද මැකේ.')) return;
+    try { await adminApi('delete', 'place_images', { filters: { place_id: id } }); await adminApi('delete', 'temple_places', { id }); fetchPlaces(); fetchPlaceImages(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  const addPlaceImage = async () => {
+    if (!imgForm.place_id || !imgForm.image_url) return;
+    setLoading(true);
+    try {
+      const existing = placeImages.filter(pi => pi.place_id === imgForm.place_id);
+      const maxOrder = existing.length > 0 ? Math.max(...existing.map(p => (p.display_order as number) || 0)) : 0;
+      await adminApi('insert', 'place_images', {
+        data: { place_id: imgForm.place_id, image_url: imgForm.image_url, alt_text: imgForm.alt_text || null, display_order: maxOrder + 1 }
+      });
+      setImgForm({ place_id: imgForm.place_id, image_url: '', alt_text: '' });
+      fetchPlaceImages();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+    setLoading(false);
+  };
+
+  const deletePlaceImage = async (id: string) => {
+    if (!confirm('මැකීමට අවශ්‍යද?')) return;
+    try { await adminApi('delete', 'place_images', { id }); fetchPlaceImages(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">🏛️ ස්ථාන කළමනාකරණය</h2>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">නව ස්ථානයක් එක් කරන්න</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <input placeholder="Slug (e.g. angiris)" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="මාතෘකාව (English)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="මාතෘකාව (සිංහල)" value={form.title_si} onChange={e => setForm({...form, title_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="කෙටි විස්තරය (English)" value={form.short_description} onChange={e => setForm({...form, short_description: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="කෙටි විස්තරය (සිංහල)" value={form.short_description_si} onChange={e => setForm({...form, short_description_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="උප මාතෘකාව (සිංහල, විකල්ප)" value={form.sub_heading_si} onChange={e => setForm({...form, sub_heading_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="කවර පින්තූර URL" value={form.cover_image} onChange={e => setForm({...form, cover_image: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <textarea placeholder="සම්පූර්ණ විස්තරය (සිංහල) - HTML allowed" value={form.description_si} onChange={e => setForm({...form, description_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm md:col-span-2" rows={3} />
+          <button onClick={addPlace} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium">
+            {loading ? 'එක් වෙමින්...' : '➕ ස්ථානය එක් කරන්න'}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">ස්ථාන ලැයිස්තුව ({places.length})</h3>
+        <div className="space-y-3">
+          {places.map(p => (
+            <div key={p.id as string} className="border rounded-lg p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="font-bold text-temple-green">{(p.title_si as string) || (p.title as string)}</h4>
+                  <p className="text-xs text-gray-400 font-mono">{p.slug as string}</p>
+                  <p className="text-sm text-gray-600 mt-1">{p.short_description_si as string || p.short_description as string}</p>
+                </div>
+                <button onClick={() => deletePlace(p.id as string)} className="text-red-500 hover:text-red-700 text-xs shrink-0 ml-4">🗑️</button>
+              </div>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                {placeImages.filter(pi => pi.place_id === p.id).map(pi => (
+                  <div key={pi.id as string} className="relative group">
+                    <img src={pi.image_url as string} alt="" className="w-16 h-16 object-cover rounded" />
+                    <button onClick={() => deletePlaceImage(pi.id as string)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {places.length === 0 && <p className="text-center text-gray-400 py-8">ස්ථාන නැත</p>}
+        </div>
+      </div>
+      {places.length > 0 && (
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <h3 className="font-bold mb-4">ස්ථානයකට පින්තූරයක් එක් කරන්න</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <select value={imgForm.place_id} onChange={e => setImgForm({...imgForm, place_id: e.target.value})} className="px-3 py-2 border rounded-lg text-sm">
+              <option value="">ස්ථානය තෝරන්න...</option>
+              {places.map(p => <option key={p.id as string} value={p.id as string}>{(p.title_si as string) || (p.title as string)}</option>)}
+            </select>
+            <input placeholder="පින්තූර URL" value={imgForm.image_url} onChange={e => setImgForm({...imgForm, image_url: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+            <input placeholder="Alt text (විකල්ප)" value={imgForm.alt_text} onChange={e => setImgForm({...imgForm, alt_text: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          </div>
+          <button onClick={addPlaceImage} disabled={loading || !imgForm.place_id || !imgForm.image_url} className="mt-3 bg-temple-green text-white px-4 py-2 rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm">
+            {loading ? 'එක් වෙමින්...' : '🖼️ පින්තූරය එක් කරන්න'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================
+   Temple Officials Tab
+   ============================================ */
+function TempleOfficialsTab() {
+  const [officials, setOfficials] = useState<Record<string, unknown>[]>([]);
+  const [form, setForm] = useState({ name: '', name_si: '', title: '', title_si: '', image_url: '', bio: '', bio_si: '' });
+  const [loading, setLoading] = useState(false);
+
+  const fetchOfficials = useCallback(async () => {
+    const { data } = await supabase.from('temple_officials').select('*').order('display_order', { ascending: true });
+    setOfficials(data || []);
+  }, []);
+
+  useEffect(() => { fetchOfficials(); }, [fetchOfficials]);
+
+  const addOfficial = async () => {
+    if (!form.name || !form.title) return;
+    setLoading(true);
+    try {
+      const maxOrder = officials.length > 0 ? Math.max(...officials.map(o => (o.display_order as number) || 0)) : 0;
+      await adminApi('insert', 'temple_officials', {
+        data: { ...form, name_si: form.name_si || null, title_si: form.title_si || null, image_url: form.image_url || null, bio: form.bio || null, bio_si: form.bio_si || null, display_order: maxOrder + 1 }
+      });
+      setForm({ name: '', name_si: '', title: '', title_si: '', image_url: '', bio: '', bio_si: '' });
+      fetchOfficials();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+    setLoading(false);
+  };
+
+  const deleteOfficial = async (id: string) => {
+    if (!confirm('මැකීමට අවශ්‍යද?')) return;
+    try { await adminApi('delete', 'temple_officials', { id }); fetchOfficials(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    try { await adminApi('update', 'temple_officials', { id, data: { is_active: !current } }); fetchOfficials(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">🧘 භික්ෂූන් / නිලධාරින්</h2>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">නව භික්ෂු/නිලධාරියෙකු එක් කරන්න</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <input placeholder="නම (English)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="නම (සිංහල)" value={form.name_si} onChange={e => setForm({...form, name_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="තනතුර (English)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="තනතුර (සිංහල)" value={form.title_si} onChange={e => setForm({...form, title_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="පින්තූර URL" value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <textarea placeholder="චරිත කථාව (සිංහල)" value={form.bio_si} onChange={e => setForm({...form, bio_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" rows={2} />
+          <button onClick={addOfficial} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium">
+            {loading ? 'එක් වෙමින්...' : '➕ එක් කරන්න'}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">ලැයිස්තුව ({officials.length})</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {officials.map(o => (
+            <div key={o.id as string} className={`border rounded-lg p-4 flex justify-between items-start ${!(o.is_active as boolean) ? 'opacity-50 bg-gray-50' : ''}`}>
+              <div className="flex items-start gap-3">
+                {o.image_url ? (
+                  <img src={o.image_url as string} alt={o.name as string} className="w-12 h-12 rounded-full object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-temple-green flex items-center justify-center text-white text-sm font-bold">🧘</div>
+                )}
+                <div>
+                  <h4 className="font-bold">{(o.name_si as string) || (o.name as string)}</h4>
+                  <p className="text-sm text-temple-gold">{(o.title_si as string) || (o.title as string)}</p>
+                  {(o.bio_si as string) && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{o.bio_si as string}</p>}
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => toggleActive(o.id as string, o.is_active as boolean)} className={`text-xs px-2 py-1 rounded ${o.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {o.is_active ? 'සක්‍රීය' : 'අක්‍රීය'}
+                </button>
+                <button onClick={() => deleteOfficial(o.id as string)} className="text-red-500 hover:text-red-700 text-xs">🗑️</button>
+              </div>
+            </div>
+          ))}
+          {officials.length === 0 && <p className="col-span-full text-center text-gray-400 py-8">නිලධාරින් නැත</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================
+   Gallery Categories Tab
+   ============================================ */
+function GalleryCategoriesTab() {
+  const [categories, setCategories] = useState<Record<string, unknown>[]>([]);
+  const [form, setForm] = useState({ slug: '', name: '', name_si: '', icon: '' });
+  const [loading, setLoading] = useState(false);
+
+  const fetchCategories = useCallback(async () => {
+    const { data } = await supabase.from('gallery_categories').select('*').order('display_order', { ascending: true });
+    setCategories(data || []);
+  }, []);
+
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+
+  const addCategory = async () => {
+    if (!form.slug || !form.name) return;
+    setLoading(true);
+    try {
+      const maxOrder = categories.length > 0 ? Math.max(...categories.map(c => (c.display_order as number) || 0)) : 0;
+      await adminApi('insert', 'gallery_categories', {
+        data: { slug: form.slug, name: form.name, name_si: form.name_si || null, icon: form.icon || null, display_order: maxOrder + 1 }
+      });
+      setForm({ slug: '', name: '', name_si: '', icon: '' });
+      fetchCategories();
+    } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+    setLoading(false);
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm('මැකීමට අවශ්‍යද? මෙම කාණ්ඩයේ සියලු ඡායාරූප ද මැකේ.')) return;
+    try { await adminApi('delete', 'gallery_images', { filters: { category_id: id } }); await adminApi('delete', 'gallery_categories', { id }); fetchCategories(); } catch (err) { alert('දෝෂයකි: ' + (err as Error).message); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">📁 ගැලරි කාණ්ඩ</h2>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">නව කාණ්ඩයක් එක් කරන්න</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <input placeholder="Slug (e.g. stupa)" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="නම (English)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="නම (සිංහල)" value={form.name_si} onChange={e => setForm({...form, name_si: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <input placeholder="ඉමෝජි (e.g. 🏛️)" value={form.icon} onChange={e => setForm({...form, icon: e.target.value})} className="px-3 py-2 border rounded-lg text-sm" />
+          <button onClick={addCategory} disabled={loading} className="bg-temple-green text-white rounded-lg hover:bg-temple-green-dark disabled:opacity-50 text-sm font-medium">
+            {loading ? 'එක් වෙමින්...' : '➕ එක් කරන්න'}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h3 className="font-bold mb-4">කාණ්ඩ ({categories.length})</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {categories.map(c => (
+            <div key={c.id as string} className="border rounded-lg p-4 flex justify-between items-center">
+              <div>
+                <span className="text-2xl mr-2">{c.icon as string}</span>
+                <span className="font-bold">{(c.name_si as string) || (c.name as string)}</span>
+                <p className="text-xs text-gray-400 font-mono">{c.slug as string}</p>
+              </div>
+              <button onClick={() => deleteCategory(c.id as string)} className="text-red-500 hover:text-red-700 text-xs">🗑️</button>
+            </div>
+          ))}
+          {categories.length === 0 && <p className="col-span-full text-center text-gray-400 py-8">කාණ්ඩ නැත</p>}
         </div>
       </div>
     </div>

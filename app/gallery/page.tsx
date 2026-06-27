@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 
 // Gallery categories with image mappings
 const galleryCategories = [
@@ -177,17 +178,40 @@ export default function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [visibleCount, setVisibleCount] = useState(16);
+  const [dbCategories, setDbCategories] = useState<typeof galleryCategories>([]);
 
-  const allImages = galleryCategories.flatMap(cat => 
+  useEffect(() => {
+    async function fetchFromDb() {
+      const { data: cats } = await supabase.from('gallery_categories').select('*').order('display_order');
+      if (!cats || cats.length === 0) return;
+      const result: typeof galleryCategories = [];
+      for (const cat of cats) {
+        const { data: imgs } = await supabase.from('gallery_images').select('*').eq('category_id', cat.id).order('display_order');
+        result.push({
+          id: cat.slug,
+          name: cat.name_si || cat.name,
+          nameEn: cat.name,
+          icon: cat.icon || '📷',
+          images: (imgs || []).map((img: Record<string, unknown>) => ({ src: img.image_url as string, title: (img.title_si as string) || (img.title as string) || '' })),
+        });
+      }
+      setDbCategories(result);
+    }
+    fetchFromDb();
+  }, []);
+
+  const activeCategories = dbCategories.length > 0 ? dbCategories : galleryCategories;
+
+  const allImages = activeCategories.flatMap(cat => 
     cat.images.map(img => ({ ...img, category: cat.name, categoryEn: cat.nameEn }))
   );
 
   const filteredImages = selectedCategory === 'all' 
     ? allImages 
-    : galleryCategories.find(cat => cat.id === selectedCategory)?.images.map(img => ({
+    : activeCategories.find(cat => cat.id === selectedCategory)?.images.map(img => ({
         ...img,
-        category: galleryCategories.find(cat => cat.id === selectedCategory)!.name,
-        categoryEn: galleryCategories.find(cat => cat.id === selectedCategory)!.nameEn
+        category: activeCategories.find(cat => cat.id === selectedCategory)!.name,
+        categoryEn: activeCategories.find(cat => cat.id === selectedCategory)!.nameEn
       })) || [];
 
   const visibleImages = filteredImages.slice(0, visibleCount);
@@ -234,7 +258,7 @@ export default function GalleryPage() {
             >
               🌟 සියල්ල / All
             </button>
-            {galleryCategories.filter(cat => cat.images.length > 0).map((category) => (
+            {activeCategories.filter(cat => cat.images.length > 0).map((category) => (
               <button
                 key={category.id}
                 onClick={() => { setSelectedCategory(category.id); setVisibleCount(16); }}
@@ -279,7 +303,7 @@ export default function GalleryPage() {
 
               {/* Category Badge */}
               <div className="absolute top-4 left-4 px-3 py-1 bg-temple-gold/90 backdrop-blur-sm rounded-full text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                {galleryCategories.find(cat => cat.images.some(img => img.src === image.src))?.icon}
+                {activeCategories.find(cat => cat.images.some(img => img.src === image.src))?.icon}
               </div>
             </div>
           ))}

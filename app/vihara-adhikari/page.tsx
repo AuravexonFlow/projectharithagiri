@@ -1,6 +1,64 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
+
+interface Official {
+  id: string;
+  name: string;
+  name_si: string;
+  title: string;
+  title_si: string;
+  image_url: string;
+  bio: string;
+  bio_si: string;
+}
 
 export default function ViharaAdhikariPage() {
+  const [officials, setOfficials] = useState<Official[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchOfficials() {
+      const { data } = await supabase.from('temple_officials').select('*').eq('is_active', true).order('display_order');
+      if (data && data.length > 0) setOfficials(data as Official[]);
+      setLoading(false);
+    }
+    fetchOfficials();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-400">පූරණය වෙමින්...</p></div>;
+
+  if (officials.length > 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-temple-green mb-4">විහාරාධිපති</h1>
+          <p className="text-xl text-gray-600">හරිතගිරි විහාරයේ ප්‍රධාන භික්ෂූන් වහන්සේ</p>
+          <div className="mt-6 w-32 h-1 bg-gradient-to-r from-temple-gold via-temple-green to-temple-gold mx-auto rounded-full"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {officials.map(o => (
+            <div key={o.id} className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-temple-gold/30">
+              {o.image_url && (
+                <div className="relative h-64 w-full">
+                  <Image src={o.image_url} alt={o.name_si || o.name} fill className="object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-temple-green mb-2">{o.name_si || o.name}</h2>
+                <p className="text-temple-gold font-semibold mb-3">{o.title_si || o.title}</p>
+                {o.bio_si && <p className="text-gray-700 leading-relaxed">{o.bio_si}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to hardcoded content
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">

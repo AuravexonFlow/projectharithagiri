@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import ImageGallery from '@/components/ImageGallery';
+import { supabase } from '@/lib/supabase';
 
 // ── Place data ──
 interface Place {
@@ -240,7 +241,6 @@ const places: Place[] = [
 ];
 
 // ── Helper ──
-const getPlaces = (ids: string[]) => places.filter(p => ids.includes(p.id));
 const ArrowIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -250,8 +250,34 @@ const ArrowIcon = () => (
 export default function SthanaPage() {
   const [activePlace, setActivePlace] = useState<Place | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [dbPlaces, setDbPlaces] = useState<Place[]>([]);
 
+  useEffect(() => {
+    async function fetchFromDb() {
+      const { data: dbRows } = await supabase.from('temple_places').select('*').eq('is_active', true).order('display_order');
+      if (!dbRows || dbRows.length === 0) return;
+      const result: Place[] = [];
+      for (const row of dbRows) {
+        const { data: imgs } = await supabase.from('place_images').select('*').eq('place_id', row.id).order('display_order');
+        const descriptions = (row.description_si || row.description || '').split('\n').filter((s: string) => s.trim());
+        result.push({
+          id: row.slug,
+          title: row.title_si || row.title,
+          shortDesc: row.short_description_si || row.short_description || '',
+          description: descriptions.length > 0 ? descriptions : [''],
+          images: (imgs || []).map((img: Record<string, unknown>) => img.image_url as string),
+          alt: row.title_si || row.title,
+          subHeading: row.sub_heading_si || row.sub_heading || undefined,
+        });
+      }
+      setDbPlaces(result);
+    }
+    fetchFromDb();
+  }, []);
+
+  const activePlaces = dbPlaces.length > 0 ? dbPlaces : places;
   const currentImages = activePlace?.images ?? [];
+  const getPlaces = (ids: string[]) => activePlaces.filter(p => ids.includes(p.id));
 
   // ── Card component ──
   const PlaceCard = ({ place, borderColor }: { place: Place; borderColor: string }) => (
